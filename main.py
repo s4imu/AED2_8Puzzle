@@ -4,7 +4,6 @@ import time
 from sprite import *
 from settings import *
 
-
 class Game:
     def __init__(self):
         pygame.init()
