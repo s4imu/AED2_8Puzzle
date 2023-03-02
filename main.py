@@ -5,18 +5,22 @@ from sprite import *
 from settings import *
 
 
-
 class Game:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT)) #cria uma nova janela com as dimensões
         pygame.display.set_caption(title) #define o titulo da janela do jogo
         self.clock = pygame.time.Clock() #controla o tempo do jogo
+        self.shuffle_time = 0
+        self.start_shuffle = False
 
     def new(self):
         self.all_sprites = pygame.sprite.Group()
         self.tiles_grid = self.create_game()
         self.tiles_grid_completed = self.create_game()
+        self.buttons_list = []
+        self.buttons_list.append(Button(775,100,200,50,"Shuffle",WHITE,BLACK))
+        self.buttons_list.append(Button(775,170,200,50,"Reset",WHITE,BLACK))
         self.draw_tiles()
         
     def draw_tiles(self):
@@ -40,10 +44,8 @@ class Game:
         grid[-1][-1]=0
         return grid
 
-
-        
     def run(self):
-        self.playing = True #cria um jogador?
+        self.playing = True #cria um jogo
         while self.playing:
 
             self.clock.tick(FPS) #limita a tatxa de atualização do jogo
@@ -62,21 +64,21 @@ class Game:
         for col in range(-1, GAME_SIZE*TILESIZE, TILESIZE):
             pygame.draw.line(self.screen,LIGHTGREY,(0,col),(GAME_SIZE*TILESIZE,col))
 
-
     def draw(self):
         self.screen.fill(BGCOLOUR)
         self.all_sprites.draw(self.screen)
         self.draw_grid()
+        for button in self.buttons_list:
+            button.draw(self.screen)
 
         pygame.display.flip()
-
-
 
     def events(self):
         for event in pygame.event.get(): #percorre os eventos do jogo em busca de um evento de saida
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit(0)
+            
             if event.type== pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 for row, tiles in enumerate(self.tiles):
@@ -93,12 +95,15 @@ class Game:
                             
                             if tile.down() and self.tiles_grid[row+1][col]==0:
                                 self.tiles_grid[row][col], self.tiles_grid[row+1][col] = self.tiles_grid[row+1][col], self.tiles_grid[row][col]
-                                
-                                
+                                                         
                             self.draw_tiles()
-
-
-
+                for button in self.buttons_list:
+                    if button.click(mouse_x,mouse_y):
+                        if button.text == "Shuffle":
+                            self.shuffle_time = 0
+                            self.start_shuffle = True
+                        if button.text == "Reset":
+                            self.new()
 
 game = Game()
 
