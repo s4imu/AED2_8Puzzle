@@ -4,7 +4,6 @@ import time
 from sprite import *
 from settings import *
 
-
 class Game:
     def __init__(self):
         pygame.init()
@@ -13,6 +12,10 @@ class Game:
         self.clock = pygame.time.Clock() #controla o tempo do jogo
         self.shuffle_time = 0
         self.start_shuffle = False
+        self.previous_choice = ""
+        self.start_game =  False
+        self.start_timer = 0
+        self.elapsed_time = 0
 
     def new(self):
         self.all_sprites = pygame.sprite.Group()
@@ -20,9 +23,46 @@ class Game:
         self.tiles_grid_completed = self.create_game()
         self.buttons_list = []
         self.buttons_list.append(Button(775,100,200,50,"Shuffle",WHITE,BLACK))
-        self.buttons_list.append(Button(775,170,200,50,"Reset",WHITE,BLACK))
+        self.buttons_list.append(Button(775,170,200,50,"Solve",WHITE,BLACK))
         self.draw_tiles()
+    
+    def shuffle(self):
+        possible_moves = []
+        for row, tiles in enumerate(self.tiles):
+            for col, tile in enumerate(tiles):
+                if tile.text == "empty":
+                    if tile.right():
+                        possible_moves.append("right")
+                    if tile.left():
+                        possible_moves.append("left")
+                    if tile.up():
+                        possible_moves.append("up")
+                    if tile.down():
+                        possible_moves.append("down")
+                    break
+            if len(possible_moves) > 0:
+                break
         
+        if self.previous_choice == "right":
+            possible_moves.remove("left") if "left" in possible_moves else possible_moves
+        if self.previous_choice == "left":
+            possible_moves.remove("right") if "right" in possible_moves else possible_moves
+        if self.previous_choice == "up":
+            possible_moves.remove("down") if "down" in possible_moves else possible_moves
+        if self.previous_choice == "down":
+            possible_moves.remove("up") if "up" in possible_moves else possible_moves
+            
+        choice = random.choice(possible_moves)
+        self.previous_choice = choice
+        if choice == "right":
+            self.tiles_grid[row][col], self.tiles_grid[row][col+1] = self.tiles_grid[row][col+1], self.tiles_grid[row][col]
+        elif choice == "left":
+            self.tiles_grid[row][col], self.tiles_grid[row][col-1] = self.tiles_grid[row][col-1], self.tiles_grid[row][col]
+        elif choice == "up":
+            self.tiles_grid[row][col], self.tiles_grid[row-1][col] = self.tiles_grid[row-1][col], self.tiles_grid[row][col]
+        elif choice == "down":
+            self.tiles_grid[row][col], self.tiles_grid[row+1][col] = self.tiles_grid[row+1][col], self.tiles_grid[row][col]
+
     def draw_tiles(self):
         self.tiles =[]
         for row, x in enumerate(self.tiles_grid):
@@ -56,6 +96,12 @@ class Game:
 
     def update(self):
         self.all_sprites.update()
+        if self.start_shuffle:
+            self.shuffle()
+            self.draw_tiles()
+            self.shuffle_time += 1
+            if self.shuffle_time > 120:
+                self.start_shuffle = False
 
     def draw_grid(self):
         for row in range(-1, GAME_SIZE*TILESIZE, TILESIZE):
@@ -102,7 +148,7 @@ class Game:
                         if button.text == "Shuffle":
                             self.shuffle_time = 0
                             self.start_shuffle = True
-                        if button.text == "Reset":
+                        if button.text == "Solve":
                             self.new()
 
 game = Game()
