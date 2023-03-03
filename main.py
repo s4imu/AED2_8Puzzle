@@ -186,6 +186,66 @@ class Game:
                         if button.text == "Solve":
                             self.new()
 
+META = [[1,2,3],[4,5,6],[7,8,0]]
+
+class No:
+	def __init__(self,estado,pai,distanciaPercorrida,custo):
+		self.estado = estado
+		self.pai = pai
+		self.distanciaPercorrida = distanciaPercorrida
+		self.custo = custo
+
+	def __eq__ (self,outro):
+		return self.estado == outro.estado
+	def __repr__ (self):
+		return str(self.estado)
+	def getState(self):
+		return self.estado
+
+def solucionavel(lista):
+  inversoes = 0
+  for linha, bloco in enumerate(lista):
+    if bloco == 0:
+      continue
+    for coluna in range(linha+1,len(lista)):
+      if lista[coluna]==0:
+        continue
+      if bloco > lista[coluna]:
+        inversoes += 1
+  if inversoes % 2 == 1:
+    return False
+  else:
+    return True
+
+def geraInicial(estado=META[:]):
+  lista = [coluna for linha in estado for coluna in linha]
+  while True:
+    random.shuffle(lista)
+    estado = [lista[:3]]+[lista[3:6]]+[lista[6:]]
+    if solucionavel(lista) and estado != META: return estado
+  return 0
+
+def localizar(estado,elemento=0):
+  for linha_atual in range(3):
+    for coluna_atual in range(3):
+      if estado[linha_atual][coluna_atual] == elemento:
+        linha = linha_atual
+        coluna = coluna_atual
+        return linha,coluna
+    
+def distanciaQuarteirao(estado1,estado2):
+  distancia = 0
+  fora_de_posicao = 0
+  for linha in range(3):
+    for coluna in range(3):
+      if estado1[linha][coluna] == 0: continue
+      linha_comparacao,coluna_comparacao = localizar(estado2,estado1[linha][coluna])
+      if linha_comparacao != linha or coluna_comparacao != coluna: fora_de_posicao += 1
+      distancia += abs(linha_comparacao-linha)+abs(coluna_comparacao-coluna)
+
+    return distancia + fora_de_posicao
+
+
 game = Game()
 
 while True:
