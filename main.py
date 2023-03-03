@@ -1,6 +1,8 @@
 import pygame
 import random
 import time
+import timeit
+import copy
 from sprite import *
 from settings import *
 
@@ -246,6 +248,141 @@ def distanciaQuarteirao(estado1,estado2):
     return distancia + fora_de_posicao
 
 
+def criarNo(estado,pai,gx=0):
+  hx = distanciaQuarteirao(estado,META)
+  fx = gx + hx
+
+  return No(estado,pai,gx,fx)
+
+def inserirNoFilaPrioridades(no,fila):
+  if no in fila:
+    return fila
+  fila.append(no)
+  chave = fila[-1]
+  posicao = len(fila) - 2
+  while fila[posicao].custo > chave.custo and posicao >= 0:
+    fila[posicao+1] = fila[posicao]
+    fila[posicao] = chave
+    posicao -= 1
+  return fila
+
+
+def moverAbaixo(estado):
+  linha,coluna = localizar(estado)
+  if linha < 2:
+    estado[linha+1][coluna],estado[linha][coluna] = estado[linha][coluna],estado[linha+1][coluna]
+  return estado
+
+def moverAcima(estado):
+  linha,coluna = localizar(estado)
+  if linha > 0:
+    estado[linha-1][coluna],estado[linha][coluna] = estado[linha][coluna],estado[linha-1][coluna]
+  return estado
+
+def moverDireita(estado):
+  linha,coluna = localizar(estado)
+  if coluna < 2:
+    estado[linha][coluna+1],estado[linha][coluna] = estado[linha][coluna],estado[linha][coluna+1]
+  return estado
+
+def moverEsquerda(estado):
+  linha,coluna = localizar(estado)
+  if coluna > 0:
+    estado[linha][coluna-1],estado[linha][coluna] = estado[linha][coluna],estado[linha][coluna-1]
+  return estado
+
+def possiveisMovimentos(no):
+  #ultilizamos o deepcopy para passar uma copia do estado afim de evitar efeitos colaterais que as funcoes podem causar no estado que esta sendo passado
+  estado = no.estado
+  pai = no.pai
+
+  if pai:
+    estadoPai = pai.estado
+  else:
+    estadoPai = None
+
+  movimentos = []
+
+  movimentosParaCima = moverAcima(copy.deepcopy(estado))
+  if movimentosParaCima != estado:
+    movimentos.append(movimentosParaCima)
+
+  movimentosParaDireita = moverDireita(copy.deepcopy(estado))
+  if movimentosParaDireita != estado:
+    movimentos.append(movimentosParaDireita)
+
+  movimentosParaBaixo = moverAbaixo(copy.deepcopy(estado))
+  if movimentosParaBaixo != estado:
+    movimentos.append(movimentosParaBaixo)
+    
+  movimentosParaEsquerda = moverEsquerda(copy.deepcopy(estado))
+  if movimentosParaEsquerda != estado:
+    movimentos.append(movimentosParaEsquerda)
+
+  return movimentos
+
+def buscaResolucao(numMaxTentativas,noInicial):
+  print(noInicial,":")
+
+  numMovimentos = 0
+  movimentos = [noInicial]
+
+  while movimentos:
+
+      no = movimentos.pop(0)
+
+      if no.estado == META:
+          solucao = []
+
+          while True:
+            solucao.append(no.estado)
+            no = no.pai
+            if not no: break 
+               
+          solucao.reverse()
+          return solucao, numMovimentos
+    
+      numMovimentos += 1
+
+      if(numMovimentos % (numMaxTentativas/10)) == 0: print(numMovimentos,end="....")
+      if(numMovimentos>numMaxTentativas): break
+
+      movimentosPossiveis = possiveisMovimentos(no) 
+
+      for movimento in movimentosPossiveis:
+        inserirNoFilaPrioridades(criarNo(movimento,no,no.distanciaPercorrida+1),movimentos)
+
+  return 0, numMovimentos 
+
+def puzz8(maxProfundidade,numAmostras):
+  tempos = []
+  solucionados = []
+  solucoes = []
+  naoSolucionados = []
+  numSolucionados = 0
+  numNaoSolucionados = 0
+  for i in range(numAmostras):
+      noInicial = criarNo(geraInicial(),None)
+      start_time = timeit.default_timer()
+      resolucao,numMovimentos = buscaResolucao(maxProfundidade,noInicial)
+      tempo = timeit.default_timer() - start_time
+
+      if resolucao:
+        solucoes.append(resolucao)
+        print("\nSolucionado em {} e {} movimentos".format(tempo,numMovimentos))
+        tempos.append(tempo)
+        solucionados.append((noInicial.estado,numMovimentos))
+        numSolucionados += 1
+      else: 
+        print("\nFalhou em {} e {} movimentos".format(tempo,numMovimentos))
+        naoSolucionados.append((noInicial.estado,numMovimentos))
+        tempos.append(None)
+        numNaoSolucionados += 1
+
+  print("Solucionados {} e nao solucionados {}".format(numSolucionados,numNaoSolucionados))
+  return tempos,solucionados,naoSolucionados, numSolucionados, numNaoSolucionados 
+
+solve = puzz8(3000,10)
 game = Game()
 
 while True:
