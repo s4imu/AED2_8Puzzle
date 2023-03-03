@@ -38,7 +38,7 @@ class Game:
         self.start_game = False
         self.buttons_list = []
         self.buttons_list.append(Button(775,100,200,50,"Shuffle",WHITE,BLACK))
-        self.buttons_list.append(Button(775,170,200,50,"Solve",WHITE,BLACK))
+        self.buttons_list.append(Button(775,170,200,50,"Reset",WHITE,BLACK))
         self.draw_tiles()
     
     def shuffle(self):
@@ -185,7 +185,7 @@ class Game:
                         if button.text == "Shuffle":
                             self.shuffle_time = 0
                             self.start_shuffle = True
-                        if button.text == "Solve":
+                        if button.text == "Reset":
                             self.new()
 
 META = [[1,2,3],[4,5,6],[7,8,0]]
