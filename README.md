@@ -17,7 +17,7 @@ pip3 install pygame
 Abra o terminal e navegue até o diretório do jogo.
 
 ~~~bash
-cd cd AED2_8Puzzle/
+cd AED2_8Puzzle/
 ~~~
 
 Execute o seguinte comando para iniciar o jogo:
