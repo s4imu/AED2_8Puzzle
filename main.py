@@ -185,7 +185,6 @@ class Game:
                             self.start_shuffle = True
                         if button.text == "Solve":
                             self.new()
-
 game = Game()
 
 while True:
